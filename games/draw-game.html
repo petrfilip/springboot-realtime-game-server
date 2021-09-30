@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+
+      * {
+          margin: 0;
+          padding: 0;
+          cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'  width='40' height='48' viewport='0 0 100 100' style='fill:black;font-size:24px;'><text y='50%'>✍️</text></svg>") 16 0, auto;
+      }
+
+      canvas {
+          width: 100vw;
+          height: 100vh;
+      }
+
+
+      Resources
+  </style>
+
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let coord = {x: 0, y: 0};
+
+    document.addEventListener("mousedown", start);
+    document.addEventListener("mouseup", stop);
+    window.addEventListener("resize", resize);
+
+    resize();
+
+    function resize() {
+        ctx.canvas.width = window.innerWidth;
+        ctx.canvas.height = window.innerHeight;
+    }
+
+
+    function sendPosition(event) {
+        fetch('http://localhost:8080/polling/send', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({x: event.clientX, y: event.clientY})
+        })
+    }
+
+    function start(event) {
+        document.addEventListener("mousemove", draw);
+        document.addEventListener("mousemove", sendPosition);
+
+    }
+
+    function stop() {
+        document.removeEventListener("mousemove", draw);
+        document.removeEventListener("mousemove", sendPosition);
+    }
+
+    function draw(event) {
+        ctx.fillRect(event.clientX, event.clientY, 5, 5); // fill in the pixel at (10,10)
+    }
+
+    async function poll() {
+        while (true) {
+
+            const result = await fetch('http://localhost:8080/polling/poll', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({x: 0, y: 0})
+            })
+                .then(response => response.json());
+
+            draw({clientX: result.game[result.game.length - 1].x, clientY: result.game[result.game.length - 1].y});
+        }
+    }
+
+    poll()
+
+
+</script>
+
+</body>
+</html>
