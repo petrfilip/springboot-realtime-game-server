@@ -1,83 +1,99 @@
 let canvas = document.getElementById("snake"); //criar elemento que irá rodar o jogo
 let context = canvas.getContext("2d"); //....
-let box = 32;
-let snake = []; //criar cobrinha como lista, já que ela vai ser uma série de coordenadas, que quando pintadas, criam os quadradinhos
-snake[0] = {
-    x: 8 * box,
-    y: 8 * box
+let box = 20;
+const width = 30
+const height = 30
+
+const DIRECTIONS = {
+    UP: "UP",
+    DOWN: "DOWN",
+    LEFT: "LEFT",
+    RIGHT: "RIGHT",
 }
-let direction = "right";
-let food = {
-    x: Math.floor(Math.random() * 15 + 1) * box,
-    y: Math.floor(Math.random() * 15 + 1) * box
-}
+
+let direction = DIRECTIONS.RIGHT;
+let foods = [];
+let snakes = [];
 
 function drawBackground() {
     context.fillStyle = "lightgreen";
-    context.fillRect(0, 0, 16 * box, 16 * box); //desenha o retângulo usando x e y e a largura e altura setadas
+    context.fillRect(0, 0, width * box, height * box);
 }
 
-function drawSnake() {
-    for (i = 0; i < snake.length; i++) {
-        context.fillStyle = "green";
-        context.fillRect(snake[i].x, snake[i].y, box, box);
+function drawSnakes() {
+    for (let snake of snakes) {
+        for (let snakeBody of snake.body) {
+            context.fillStyle = "green";
+            context.fillRect(snakeBody.x * box, snakeBody.y * box, box, box);
+        }
     }
 }
 
-function drawFood() {
-    context.fillStyle = "red";
-    context.fillRect(food.x, food.y, box, box);
+function drawFoods() {
+    foods.forEach(item => {
+        context.fillStyle = "red";
+        context.fillRect(item.x, item.y, box, box);
+    });
 }
 
 //quando um evento acontece, detecta e chama uma função
 document.addEventListener('keydown', update);
 
 function update(event) {
-    if (event.keyCode == 37 && direction != 'right') direction = 'left';
-    if (event.keyCode == 38 && direction != 'down') direction = 'up';
-    if (event.keyCode == 39 && direction != 'left') direction = 'right';
-    if (event.keyCode == 40 && direction != 'up') direction = 'down';
+    const originDirection = direction;
+    if (event.keyCode === 37 && direction !== DIRECTIONS.RIGHT) direction = DIRECTIONS.LEFT;
+    if (event.keyCode === 38 && direction !== DIRECTIONS.DOWN) direction = DIRECTIONS.UP;
+    if (event.keyCode === 39 && direction !== DIRECTIONS.LEFT) direction = DIRECTIONS.RIGHT;
+    if (event.keyCode === 40 && direction !== DIRECTIONS.UP) direction = DIRECTIONS.DOWN
+
+    if (direction !== originDirection) {
+        fetch('http://localhost:8080/polling/send', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({direction: direction})
+        })
+    }
 }
 
 function playGame() {
 
-    if (snake[0].x > 15 * box && direction == "right") snake[0].x = 0;
-    if (snake[0].x < 0 && direction == 'left') snake[0].x = 16 * box;
-    if (snake[0].y > 15 * box && direction == "down") snake[0].y = 0;
-    if (snake[0].y < 0 && direction == 'up') snake[0].y = 16 * box;
+    // if (snake[0].x > 15 * box && direction === "right") snake[0].x = 0;
+    // if (snake[0].x < 0 && direction === 'left') snake[0].x = 16 * box;
+    // if (snake[0].y > 15 * box && direction === "down") snake[0].y = 0;
+    // if (snake[0].y < 0 && direction === 'up') snake[0].y = 16 * box;
 
-    for (i = 1; i < snake.length; i++) {
-        if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-            clearInterval(jogo);
-            alert('Game Over :(');
-        }
-    }
+    // for (i = 1; i < snake.length; i++) {
+    //     if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
+    //         clearInterval(jogo);
+    //         alert('Game Over :(');
+    //     }
+    // }
 
-    drawBackground();
-    drawSnake();
-    drawFood();
 
-    let snakeX = snake[0].x;
-    let snakeY = snake[0].y;
 
-    if (direction == "right") snakeX += box;
-    if (direction == "left") snakeX -= box;
-    if (direction == "up") snakeY -= box;
-    if (direction == "down") snakeY += box;
-
-    if (snakeX != food.x || snakeY != food.y) {
-        snake.pop(); //pop tira o último elemento da lista
-    } else {
-        food.x = Math.floor(Math.random() * 15 + 1) * box;
-        food.y = Math.floor(Math.random() * 15 + 1) * box;
-    }
-
-    let newHead = {
-        x: snakeX,
-        y: snakeY
-    }
-
-    snake.unshift(newHead); //método unshift adiciona como primeiro quadradinho da cobrinha
 }
 
-let jogo = setInterval(playGame, 100);
+
+async function poll() {
+    while (true) {
+
+        const result = await fetch('http://localhost:8080/polling/poll', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({tick: 0})
+        })
+            .then(response => response.json());
+
+        snakes = Object.values(result.game.snakeList);
+        foods = result.game.foodList;
+
+        drawBackground();
+        drawSnakes();
+        drawFoods();
+
+    }
+}
+
+poll()
+
+let jogo = setInterval(playGame, 500);

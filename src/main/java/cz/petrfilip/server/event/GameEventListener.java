@@ -1,4 +1,4 @@
-package cz.petrfilip.multiplayerserver.event;
+package cz.petrfilip.server.event;
 
 import java.util.ArrayDeque;
 import java.util.Queue;

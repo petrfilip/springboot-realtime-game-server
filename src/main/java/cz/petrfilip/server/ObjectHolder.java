@@ -1,4 +1,4 @@
-package cz.petrfilip.multiplayerserver;
+package cz.petrfilip.server;
 
 public class ObjectHolder<T> {
 
@@ -8,7 +8,6 @@ public class ObjectHolder<T> {
 
 
   public void set(T value) {
-    System.out.println("value added");
     synchronized(lock) {
       this.value = value;
       lock.notify();

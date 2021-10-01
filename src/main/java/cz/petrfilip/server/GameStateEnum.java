@@ -1,4 +1,4 @@
-package cz.petrfilip.multiplayerserver;
+package cz.petrfilip.server;
 
 public enum GameStateEnum {
   WAITING,

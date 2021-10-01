@@ -1,10 +1,9 @@
-package cz.petrfilip.multiplayerserver.controller;
+package cz.petrfilip.server.controller;
 
-import cz.petrfilip.multiplayerserver.GameService;
-import cz.petrfilip.multiplayerserver.GameStateDto;
-import cz.petrfilip.multiplayerserver.ObjectHolder;
-import cz.petrfilip.multiplayerserver.event.GameEventCallback;
-import cz.petrfilip.multiplayerserver.event.GameEventListener;
+import cz.petrfilip.server.GameService;
+import cz.petrfilip.server.GameState;
+import cz.petrfilip.server.ObjectHolder;
+import cz.petrfilip.server.event.GameEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,14 +23,14 @@ public class SpringPollingController {
 
   private final Object lock = new Object();
 
-  private final List<ObjectHolder<GameStateDto>> holders = new ArrayList<>();
+  private final List<ObjectHolder<GameState>> holders = new ArrayList<>();
 
   private final GameService gameService;
   private final GameEventListener gameEventListener;
 
   public SpringPollingController(GameService gameService, GameEventListener gameEventListener) {
     this.gameEventListener = gameEventListener;
-    gameService.addPlayer(0);
+    // gameService.addPlayer(0);
     this.gameService = gameService;
 
   }
@@ -40,7 +39,7 @@ public class SpringPollingController {
   @CrossOrigin
   public DeferredResult<Object> publisher(@RequestBody Map<String, Object> ctx) {
     DeferredResult<Object> output = new DeferredResult<>();
-    ObjectHolder<GameStateDto> holder = new ObjectHolder<>();
+    ObjectHolder<GameState> holder = new ObjectHolder<>();
     consumers.execute(() -> {
       try {
 
@@ -48,6 +47,7 @@ public class SpringPollingController {
 
         synchronized (lock) {
           holders.add(holder);
+          gameEventListener.onNextStateCalculated(() -> holder.set(gameService.getGameState(0)));
         }
         holder.get();
         output.setResult(gameService.getGameState(0));
@@ -61,15 +61,15 @@ public class SpringPollingController {
 
   @PostMapping(path = "polling/send")
   @CrossOrigin
-  public Object send(@RequestBody Map<String, Object> ctx) {
+  public Object send(@RequestBody Map<String, Object> playerMove) {
     synchronized (lock) {
-      for (ObjectHolder<GameStateDto> holder : holders) {
-        gameService.addPlayerMove(0, 0, ctx);
+      gameService.addPlayerMove(0, 0, playerMove);
+      for (ObjectHolder<GameState> holder : holders) {
         gameEventListener.onNextStateCalculated(() -> holder.set(gameService.getGameState(0)));
       }
       holders.clear();
     }
-    return ctx;
+    return playerMove;
   }
 
 

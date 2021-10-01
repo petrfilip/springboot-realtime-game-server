@@ -1,4 +1,4 @@
-package cz.petrfilip.multiplayerserver.draw;
+package cz.petrfilip.games.draw;
 
 import java.util.ArrayList;
 import java.util.List;

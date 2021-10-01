@@ -1,4 +1,4 @@
-package cz.petrfilip.multiplayerserver.event;
+package cz.petrfilip.server.event;
 
 public interface GameEventCallback {
 

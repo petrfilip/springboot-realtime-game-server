@@ -9,6 +9,22 @@
     <script defer src="script.js"></script>
 </head>
 <body>
+
+
+
+<div>
+    <script>
+        function startGame() {
+            fetch('http://localhost:8080/start', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({direction: direction})
+            })
+        }
+    </script>
+    <input id="playerId" type="text" name="playerId"/>
+    <button onclick="startGame()">Start</button>
+</div>
     <h1>SNAKE GAME!</h1>
     <canvas id="snake" width="512" height="512"></canvas>
 </body>
