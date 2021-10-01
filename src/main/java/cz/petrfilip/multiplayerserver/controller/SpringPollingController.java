@@ -1,7 +1,10 @@
 package cz.petrfilip.multiplayerserver.controller;
 
 import cz.petrfilip.multiplayerserver.GameService;
+import cz.petrfilip.multiplayerserver.GameStateDto;
 import cz.petrfilip.multiplayerserver.ObjectHolder;
+import cz.petrfilip.multiplayerserver.event.GameEventCallback;
+import cz.petrfilip.multiplayerserver.event.GameEventListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +24,13 @@ public class SpringPollingController {
 
   private final Object lock = new Object();
 
-  private final List<ObjectHolder<Object>> holders = new ArrayList<>();
+  private final List<ObjectHolder<GameStateDto>> holders = new ArrayList<>();
 
   private final GameService gameService;
+  private final GameEventListener gameEventListener;
 
-  public SpringPollingController(GameService gameService) {
+  public SpringPollingController(GameService gameService, GameEventListener gameEventListener) {
+    this.gameEventListener = gameEventListener;
     gameService.addPlayer(0);
     this.gameService = gameService;
 
@@ -35,9 +40,12 @@ public class SpringPollingController {
   @CrossOrigin
   public DeferredResult<Object> publisher(@RequestBody Map<String, Object> ctx) {
     DeferredResult<Object> output = new DeferredResult<>();
-    ObjectHolder<Object> holder = new ObjectHolder<>();
+    ObjectHolder<GameStateDto> holder = new ObjectHolder<>();
     consumers.execute(() -> {
       try {
+
+        // ctx.get("tick")  gameService.getGameState(0).getTick()
+
         synchronized (lock) {
           holders.add(holder);
         }
@@ -55,9 +63,9 @@ public class SpringPollingController {
   @CrossOrigin
   public Object send(@RequestBody Map<String, Object> ctx) {
     synchronized (lock) {
-      for (ObjectHolder<Object> holder : holders) {
+      for (ObjectHolder<GameStateDto> holder : holders) {
         gameService.addPlayerMove(0, 0, ctx);
-        holder.set(gameService.getGameState(0));
+        gameEventListener.onNextStateCalculated(() -> holder.set(gameService.getGameState(0)));
       }
       holders.clear();
     }

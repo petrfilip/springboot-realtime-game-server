@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface IRule<STATE, MOVE> {
 
-  GameStateDto<List<DrawGamePoint>> init(Collection<PlayerDto> players);
+  GameStateDto<List<DrawGamePoint>> init(GameStateDto<STATE> currentState, Collection<PlayerDto> players);
 
   boolean isMoveAllowed(GameStateDto<STATE> gameStateDto, Object playerMove);
 

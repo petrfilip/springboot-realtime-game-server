@@ -13,10 +13,10 @@ import org.springframework.stereotype.Service;
 public class DrawGameRule implements IRule<List<DrawGamePoint>, DrawGamePoint> {
 
   @Override
-  public GameStateDto<List<DrawGamePoint>> init(Collection<PlayerDto> players) {
-    GameStateDto<List<DrawGamePoint>> objectGameStateDto = new GameStateDto<>();
-    objectGameStateDto.setGame(new ArrayList<>());
-    return objectGameStateDto;
+  public GameStateDto<List<DrawGamePoint>> init(GameStateDto<List<DrawGamePoint>> currentState, Collection<PlayerDto> players) {
+    currentState.setGame(currentState.getGame() != null ? currentState.getGame() : new ArrayList<>());
+    currentState.setPlayers(players);
+    return currentState;
   }
 
   @Override

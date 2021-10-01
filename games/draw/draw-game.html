@@ -25,6 +25,8 @@
 <canvas id="canvas"></canvas>
 
 <script>
+    let tick = 0;
+
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     let coord = {x: 0, y: 0};
@@ -50,13 +52,13 @@
     }
 
     function start(event) {
-        document.addEventListener("mousemove", draw);
+        // document.addEventListener("mousemove", draw);
         document.addEventListener("mousemove", sendPosition);
 
     }
 
     function stop() {
-        document.removeEventListener("mousemove", draw);
+        // document.removeEventListener("mousemove", draw);
         document.removeEventListener("mousemove", sendPosition);
     }
 
@@ -70,9 +72,11 @@
             const result = await fetch('http://localhost:8080/polling/poll', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({x: 0, y: 0})
+                body: JSON.stringify({tick: tick})
             })
                 .then(response => response.json());
+
+            tick = result.tick;
 
             draw({clientX: result.game[result.game.length - 1].x, clientY: result.game[result.game.length - 1].y});
         }

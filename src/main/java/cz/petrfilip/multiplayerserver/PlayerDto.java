@@ -9,8 +9,6 @@ public class PlayerDto {
 
   private PlayerStateEnum state = PlayerStateEnum.WAITING;
 
-  private PlayerListener playerListener;
-
   public PlayerDto() {
   }
 
