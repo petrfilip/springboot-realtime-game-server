@@ -10,6 +10,8 @@ public class Player {
 
   private PlayerStateEnum state = PlayerStateEnum.WAITING;
 
+  private Integer score = 0;
+
   public Player() {
   }
 

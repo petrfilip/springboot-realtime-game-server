@@ -29,14 +29,13 @@ public class GameService {
     this.rule = rule;
     this.tickEventPublisher = tickEventPublisher;
     this.objectMapper = objectMapper;
-    startGame(new HashMap<>());
   }
 
   public GameState addPlayer(Integer playerId) {
     Player player = new Player(playerId);
 
     players.put(playerId, player);
-    rule.init(currentState != null ? currentState : new GameState(), players.values());
+    // rule.init(currentState != null ? currentState : new GameState(), players.values());
     return currentState;
   }
 
@@ -48,7 +47,7 @@ public class GameService {
 
     // check if player can do something new
     Player player = this.players.get(playerId);
-    if (player.getState().equals(PlayerStateEnum.FINISHED)) {
+    if (player.getState().equals(PlayerStateEnum.DONE)) {
       return;
     }
 
@@ -68,8 +67,7 @@ public class GameService {
   }
 
   public void calculateNextState() {
-    GameState gameStateInCurrentTick = currentState != null ? currentState : rule.init(new GameState(), players.values());
-    GameState gameState = rule.getNextGameState(gameStateInCurrentTick, unprocessedMoves, players.values());
+    GameState gameState = rule.getNextGameState(currentState, unprocessedMoves);
     gameState.setTick(gameState.getTick() + 1);
 
     // save state
@@ -95,7 +93,7 @@ public class GameService {
     rule.init(currentState, players.values());
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
 
-    scheduledFuture = executor.scheduleAtFixedRate(this::calculateNextState, 0, 500, TimeUnit.MILLISECONDS);
+    scheduledFuture = executor.scheduleAtFixedRate(this::calculateNextState, 0, 100, TimeUnit.MILLISECONDS);
     return currentState;
   }
 

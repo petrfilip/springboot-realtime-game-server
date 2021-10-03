@@ -1,8 +1,12 @@
-let canvas = document.getElementById("snake"); //criar elemento que irá rodar o jogo
-let context = canvas.getContext("2d"); //....
+let canvas = document.getElementById("snake");
+let context = canvas.getContext("2d");
 let box = 20;
 const width = 30
 const height = 30
+
+canvas.width = (box * width) + box;
+canvas.height = (box * height) + box;
+
 
 const DIRECTIONS = {
     UP: "UP",
@@ -11,13 +15,15 @@ const DIRECTIONS = {
     RIGHT: "RIGHT",
 }
 
-let direction = DIRECTIONS.RIGHT;
+
+
+let direction = null;
 let foods = [];
 let snakes = [];
 
 function drawBackground() {
     context.fillStyle = "lightgreen";
-    context.fillRect(0, 0, width * box, height * box);
+    context.fillRect(0, 0, (width * box) + box, (height * box) + box);
 }
 
 function drawSnakes() {
@@ -32,11 +38,10 @@ function drawSnakes() {
 function drawFoods() {
     foods.forEach(item => {
         context.fillStyle = "red";
-        context.fillRect(item.x, item.y, box, box);
+        context.fillRect(item.x * box, item.y * box, box, box);
     });
 }
 
-//quando um evento acontece, detecta e chama uma função
 document.addEventListener('keydown', update);
 
 function update(event) {
@@ -53,24 +58,6 @@ function update(event) {
             body: JSON.stringify({direction: direction})
         })
     }
-}
-
-function playGame() {
-
-    // if (snake[0].x > 15 * box && direction === "right") snake[0].x = 0;
-    // if (snake[0].x < 0 && direction === 'left') snake[0].x = 16 * box;
-    // if (snake[0].y > 15 * box && direction === "down") snake[0].y = 0;
-    // if (snake[0].y < 0 && direction === 'up') snake[0].y = 16 * box;
-
-    // for (i = 1; i < snake.length; i++) {
-    //     if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-    //         clearInterval(jogo);
-    //         alert('Game Over :(');
-    //     }
-    // }
-
-
-
 }
 
 
@@ -96,4 +83,3 @@ async function poll() {
 
 poll()
 
-let jogo = setInterval(playGame, 500);

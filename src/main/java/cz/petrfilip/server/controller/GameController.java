@@ -21,15 +21,14 @@ public class GameController {
   @PostMapping(path = "start")
   @CrossOrigin
   public GameState send(@RequestBody Map<String, Object> gameParameters) {
-    gameService.startGame(gameParameters);
-    return gameService.addPlayer(0);
+    gameService.addPlayer(0);
+    return gameService.startGame(gameParameters);
   }
 
   @PostMapping(path = "join")
   @CrossOrigin
   public GameState join(@RequestBody Map<String, Object> gameParameters) {
-    // return gameService.addPlayer(gameParameters);
-    return null;
+    return gameService.addPlayer(Integer.valueOf(String.valueOf(gameParameters.get("playerId"))));
   }
 
 }

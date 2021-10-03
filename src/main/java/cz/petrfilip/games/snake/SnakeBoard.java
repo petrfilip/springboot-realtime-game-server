@@ -1,8 +1,6 @@
 package cz.petrfilip.games.snake;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.impl.StringCollectionSerializer;
 import cz.petrfilip.server.Player;
 import cz.petrfilip.server.controller.PlayerSerializer;
 import java.util.ArrayList;

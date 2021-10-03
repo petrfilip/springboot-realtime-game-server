@@ -1,8 +1,8 @@
 package cz.petrfilip.server;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ public class GameState<STATE> {
 
   private Map<String, Object> params = new HashMap<>();
 
-  private Collection<Player> players = new ArrayList<>();
+  private Collection<Player> players = new HashSet<>();
 
   private STATE game;
 

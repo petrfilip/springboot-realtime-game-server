@@ -1,22 +1,18 @@
 package cz.petrfilip.games.snake;
 
-import lombok.AllArgsConstructor;
+import cz.petrfilip.server.common.Point;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class SnakeBody {
+public class SnakeBody extends Point {
 
-  private Integer x;
-  private Integer y;
-
-  public Integer getX() {
-    return Math.abs(x);
+  public SnakeBody(Integer x, Integer y) {
+    super(x, y);
   }
 
-  public Integer getY() {
-    return Math.abs(y);
+  public SnakeBody(Point point) {
+    super(point.getX(), point.getY());
   }
 }

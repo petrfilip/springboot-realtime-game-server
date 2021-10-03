@@ -29,7 +29,7 @@ public class DrawGameRule implements IRule<List<DrawGamePoint>, DrawGamePoint> {
   }
 
   @Override
-  public GameState<List<DrawGamePoint>> getNextGameState(GameState<List<DrawGamePoint>> newGameState, Map<Player, DrawGamePoint> currentMoves, Collection<Player> players) {
+  public GameState<List<DrawGamePoint>> getNextGameState(GameState<List<DrawGamePoint>> newGameState, Map<Player, DrawGamePoint> currentMoves) {
     newGameState.getGame().addAll(currentMoves.values());
     return newGameState;
   }
