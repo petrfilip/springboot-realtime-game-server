@@ -1,4 +1,5 @@
-let canvas = document.getElementById("snake");
+console.log("Snake game loaded");
+let canvas = document.getElementById("gameBoard");
 let context = canvas.getContext("2d");
 let box = 20;
 const width = 30
@@ -7,15 +8,12 @@ const height = 30
 canvas.width = (box * width) + box;
 canvas.height = (box * height) + box;
 
-
 const DIRECTIONS = {
     UP: "UP",
     DOWN: "DOWN",
     LEFT: "LEFT",
     RIGHT: "RIGHT",
 }
-
-
 
 let direction = null;
 let foods = [];
@@ -52,34 +50,18 @@ function update(event) {
     if (event.keyCode === 40 && direction !== DIRECTIONS.UP) direction = DIRECTIONS.DOWN
 
     if (direction !== originDirection) {
-        fetch('http://localhost:8080/polling/send', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({direction: direction})
-        })
+        serverConnection.sendMove({direction: direction})
     }
 }
 
 
-async function poll() {
-    while (true) {
+serverConnection.onGameChange((data) => {
+    console.log(data)
+    snakes = Object.values(data.game.snakeList);
+    foods = data.game.foodList;
 
-        const result = await fetch('http://localhost:8080/polling/poll', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({tick: 0})
-        })
-            .then(response => response.json());
-
-        snakes = Object.values(result.game.snakeList);
-        foods = result.game.foodList;
-
-        drawBackground();
-        drawSnakes();
-        drawFoods();
-
-    }
-}
-
-poll()
+    drawBackground();
+    drawSnakes();
+    drawFoods();
+})
 

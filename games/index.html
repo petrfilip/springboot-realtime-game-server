@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js"></script>
+</head>
+<body>
+
+
+<form id="createRoom" onSubmit="event.preventDefault(); createRoom(); return false;">
+  <h2>Create room</h2>
+  <input type="text" id="inputRoomName" name="roomName" placeholder="Room name" required/>
+  <select id="inputGameName" required>
+    <option value="snake" selected>Snake</option>
+    <option value="draw">Draw</option>
+  </select>
+  <input type="number" id="inputPlayerId" name="playerId" placeholder="Player ID" onChange="setPlayer()" required/>
+  <button>Create room</button>
+</form>
+
+<div>
+  <h2>Room list</h2>
+  <div id="roomList">
+    <strong>Loading...</strong>
+  </div>
+  <button onClick="refreshRoomList()">Refresh list of rooms</button>
+</div>
+
+<div>
+  <h2>Game board</h2>
+  <button onClick="startGame()">Start game</button>
+  <button onClick="joinGame()">Join game</button>
+  <canvas id="gameBoard"></canvas>
+
+</div>
+
+
+<script>
+
+    loadJS = (url, implementationCode, location) => {
+        //url is URL of external file, implementationCode is the code
+        //to be called from the file, location is the location to
+        //insert the <script> element
+
+        var scriptTag = document.createElement('script');
+        scriptTag.src = url;
+
+        scriptTag.onload = () => implementationCode(url);
+        // scriptTag.onreadystatechange = implementationCode;
+
+        location.appendChild(scriptTag);
+    };
+    let onLoadGameScript = function (url) {
+        this.loadedGames = url //todo array
+    }
+
+    async function startGame() {
+        const responseJoinRoom = serverConnection.joinToRoom(serverConnection.getPlayer());
+        if (this.loadedGames === undefined) {
+            loadJS("http://localhost:63342/multiplayerServer/games/snake/script.js", onLoadGameScript, document.body);
+        }
+        serverConnection.startGame();
+    }
+
+    function joinGame() {
+        serverConnection.joinToRoom(serverConnection.getPlayer())
+        if (this.loadedGames === undefined) {
+            loadJS("http://localhost:63342/multiplayerServer/games/snake/script.js", onLoadGameScript, document.body);
+        }
+    }
+
+    function setPlayer() {
+        serverConnection.setPlayerId(document.getElementById("inputPlayerId").value)
+    }
+
+    function createRoom() {
+        const roomName = document.getElementById("inputRoomName").value
+        const gameName = document.getElementById("inputGameName").value
+        const roomOwner = document.getElementById("inputPlayerId").value
+        serverConnection.createRoom({roomName, gameName, roomOwner}, refreshRoomList);
+    }
+
+    function refreshRoomList() {
+        console.log("Refreshing room list")
+        const ul = document.getElementById("roomList");
+        ul.innerHTML = "";
+        const li = document.createElement("li");
+        li.appendChild(document.createTextNode("Loading..."));
+        ul.appendChild(li);
+
+        serverConnection.getRoomList().then(rooms => {
+            ul.innerHTML = "";
+            renderRoomList(rooms)
+        })
+    }
+
+    function renderRoomList(rooms) {
+
+
+        if (rooms.length) {
+            for (let i = 0; i < rooms.length; i++) {
+                const ul = document.getElementById("roomList");
+                const textNode = document.createElement('button')
+                textNode.innerHTML = rooms[i].roomName + " " + rooms[i].roomId + " " + rooms[i].state + " " + rooms[i].connectedPlayers.length;
+
+                textNode.addEventListener("click", function () {
+                    serverConnection.setRoomId(rooms[i].roomId);
+                });
+
+                ul.appendChild(textNode);
+            }
+        } else {
+            const ul = document.getElementById("roomList");
+            const li = document.createElement("li");
+            li.appendChild(document.createTextNode("No room available"));
+            ul.appendChild(li);
+        }
+    }
+
+
+    const serverConnection = new ServerHelper("http://localhost:8080")
+    refreshRoomList();
+
+
+</script>
+
+
+</body>
+</html>

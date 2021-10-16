@@ -1,5 +1,7 @@
 package cz.petrfilip.games.draw;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+
 import cz.petrfilip.server.GameState;
 import cz.petrfilip.server.IRule;
 import cz.petrfilip.server.Player;
@@ -7,8 +9,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
-// @Service
+@Service("draw")
+@Scope(scopeName = SCOPE_PROTOTYPE)
 public class DrawGameRule implements IRule<List<DrawGamePoint>, DrawGamePoint> {
 
   @Override
@@ -21,11 +26,6 @@ public class DrawGameRule implements IRule<List<DrawGamePoint>, DrawGamePoint> {
     currentState.setGame(currentState.getGame() != null ? currentState.getGame() : new ArrayList<>());
     currentState.setPlayers(players);
     return currentState;
-  }
-
-  @Override
-  public boolean isMoveAllowed(GameState<List<DrawGamePoint>> gameState, DrawGamePoint playerMove) {
-    return true;
   }
 
   @Override

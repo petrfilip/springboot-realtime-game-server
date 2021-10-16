@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TickEventPublisher {
+
   private final ApplicationEventPublisher applicationEventPublisher;
 
   public TickEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -12,7 +13,7 @@ public class TickEventPublisher {
   }
 
   public void tickEvent(final String message) {
-    TickEvent customSpringEvent = new TickEvent(this, message);
-    applicationEventPublisher.publishEvent(customSpringEvent);
+    TickEvent tickEvent = new TickEvent(this, message);
+    applicationEventPublisher.publishEvent(tickEvent);
   }
 }

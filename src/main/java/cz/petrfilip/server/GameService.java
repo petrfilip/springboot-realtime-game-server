@@ -1,19 +1,25 @@
 package cz.petrfilip.server;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.petrfilip.server.event.TickEventPublisher;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service
+@Scope(scopeName = SCOPE_PROTOTYPE)
 public class GameService {
 
-  private final IRule rule;
+  private IRule rule;
   private final TickEventPublisher tickEventPublisher;
   private final ObjectMapper objectMapper;
 
@@ -25,16 +31,21 @@ public class GameService {
 
   private final Map<Integer, Player> players = new HashMap<>();
 
-  public GameService(IRule rule, TickEventPublisher tickEventPublisher, ObjectMapper objectMapper) {
-    this.rule = rule;
+  public GameService(TickEventPublisher tickEventPublisher, ObjectMapper objectMapper) {
     this.tickEventPublisher = tickEventPublisher;
     this.objectMapper = objectMapper;
   }
 
-  public GameState addPlayer(Integer playerId) {
-    Player player = new Player(playerId);
+  public void setGame(IRule rule) {
+    if (this.rule != null) {
+      throw new IllegalStateException("Game is already set");
+    }
+    this.rule = rule;
+  }
 
-    players.put(playerId, player);
+  public GameState addPlayer(Player player) {
+
+    players.put(player.getPlayerId(), player);
     // rule.init(currentState != null ? currentState : new GameState(), players.values());
     return currentState;
   }
@@ -51,16 +62,11 @@ public class GameService {
       return;
     }
 
-    // verify if player is cheating or something gone wrong
-    // if (!rule.isMoveAllowed(currentState, playerMove)) {
-    //   throw new RuntimeException("Unexpected move");
-    // }
-
     Object move = objectMapper.convertValue(playerMove, rule.getMoveClass());
 
     unprocessedMoves.put(player, move);
     try {
-      System.out.println(new StringBuilder().append("New player move in tick ").append(currentState.getTick()).append(":").append(objectMapper.writeValueAsString(playerMove)).toString());
+      System.out.println(new StringBuilder().append("New player move in tick ").append(currentState.getTick()).append(":").append(objectMapper.writeValueAsString(playerMove)));
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }
@@ -76,6 +82,10 @@ public class GameService {
       System.out.println("Current tick:" + gameState.getTick() + " :: " + objectMapper.writeValueAsString(currentState));
     } catch (JsonProcessingException e) {
       e.printStackTrace();
+    }
+
+    if (gameState.getState().equals(GameStateEnum.FINISHED)) {
+      scheduledFuture.cancel(false);
     }
 
     unprocessedMoves = new HashMap<>();
@@ -98,7 +108,7 @@ public class GameService {
   }
 
   @SneakyThrows
-  public GameState getGameState(Object ctx) {
+  public GameState getGameState() {
     return currentState;
   }
 }

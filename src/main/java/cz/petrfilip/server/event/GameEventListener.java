@@ -19,7 +19,7 @@ public class GameEventListener implements ApplicationListener<TickEvent> {
   }
 
 
-  public void onNextStateCalculated(GameEventCallback callback) {
+  public void onChange(GameEventCallback callback) {
     tickEvents.add(callback);
   }
 }

@@ -19,4 +19,7 @@ public class GameState<STATE> {
 
   private STATE game;
 
+  // private Map<Integer, List<GameStateUpdate>> gameUpdate = new HashMap<>();
+
+
 }

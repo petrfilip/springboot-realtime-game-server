@@ -1,6 +1,11 @@
 package cz.petrfilip.games.snake;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+
 import cz.petrfilip.server.GameState;
+import cz.petrfilip.server.GameStateEnum;
+import cz.petrfilip.server.GameStateUpdate;
+import cz.petrfilip.server.GameStateUpdateEnum;
 import cz.petrfilip.server.IRule;
 import cz.petrfilip.server.Player;
 import cz.petrfilip.server.PlayerStateEnum;
@@ -11,9 +16,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("snake")
+@Scope(scopeName = SCOPE_PROTOTYPE)
 public class SnakeGameRule implements IRule<SnakeBoard, SnakeMove> {
 
   @Override
@@ -27,6 +34,7 @@ public class SnakeGameRule implements IRule<SnakeBoard, SnakeMove> {
     //init players
     players.forEach(player -> player.setState(PlayerStateEnum.ACTIVE));
     currentState.getPlayers().addAll(players);
+    currentState.setState(GameStateEnum.RUNNING);
 
     currentState.setGame(currentState.getGame() != null ? currentState.getGame() : new SnakeBoard());
 
@@ -50,13 +58,12 @@ public class SnakeGameRule implements IRule<SnakeBoard, SnakeMove> {
     return currentState;
   }
 
-  @Override
-  public boolean isMoveAllowed(GameState<SnakeBoard> gameState, SnakeMove playerMove) {
-    return true;
-  }
 
   @Override
   public GameState<SnakeBoard> getNextGameState(GameState<SnakeBoard> newGameState, Map<Player, SnakeMove> currentMoves) {
+
+    List<GameStateUpdate> updates = new ArrayList<>();
+    // newGameState.getGameUpdate().put(newGameState.getTick() + 1, updates);
 
     Integer boardWidth = (Integer) newGameState.getParams().getOrDefault("width", 30);
     Integer boardHeight = (Integer) newGameState.getParams().getOrDefault("height", 30);
@@ -83,22 +90,22 @@ public class SnakeGameRule implements IRule<SnakeBoard, SnakeMove> {
       } else {
         SnakeBody tail = snakeList.get(player).getBody().poll();
         assert tail != null;
-      }
-
-      List<Point> allPoints = new ArrayList<>();
-      for (Snake value : newGameState.getGame().getSnakeList().values()) {
-        allPoints.addAll(value.getBody());
+        updates.add(new GameStateUpdate("snake", player.getPlayerId(), GameStateUpdateEnum.REMOVED, 0, null));
       }
 
       // check collision
+      List<Point> allPoints = getAllSnakesBodies(newGameState);
       if (BoardUtils.indexOfPoint(allPoints, nextHead) >= 0) {
         player.setState(PlayerStateEnum.DONE);
       }
 
       snakeList.get(player).setDirection(snakeNewDirection);
-      snakeList.get(player).getBody().add(nextHead);
-    }
 
+      snakeList.get(player).getBody().add(nextHead);
+      updates.add(new GameStateUpdate("snake", player.getPlayerId(), GameStateUpdateEnum.ADDED, snakeList.get(player).getBody().size(), nextHead));
+
+
+    }
 
     newGameState.getGame().getFoodList().removeAll(eatenFoods);
 
@@ -106,8 +113,20 @@ public class SnakeGameRule implements IRule<SnakeBoard, SnakeMove> {
       newGameState.getGame().getFoodList().add(new Food(BoardUtils.generatePoint(boardWidth, boardHeight)));
     }
 
+    if (newGameState.getPlayers().stream().allMatch(player -> player.getState().equals(PlayerStateEnum.DONE))) {
+      newGameState.setState(GameStateEnum.FINISHED);
+    }
+
     return newGameState;
 
+  }
+
+  private List<Point> getAllSnakesBodies(GameState<SnakeBoard> newGameState) {
+    List<Point> allPoints = new ArrayList<>();
+    for (Snake value : newGameState.getGame().getSnakeList().values()) {
+      allPoints.addAll(value.getBody());
+    }
+    return allPoints;
   }
 
   private SnakeBody calculateNextHead(SnakeBody head, SnakeDirectionEnum snakeNewDirection) {

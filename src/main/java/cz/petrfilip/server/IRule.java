@@ -9,7 +9,5 @@ public interface IRule<STATE, MOVE> {
 
   GameState<STATE> init(GameState<STATE> currentState, Collection<Player> players);
 
-  boolean isMoveAllowed(GameState<STATE> gameState, MOVE playerMove);
-
   GameState<STATE> getNextGameState(GameState<STATE> newGameState, Map<Player, MOVE> unprocessedMoves);
 }

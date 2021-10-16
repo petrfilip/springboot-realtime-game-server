@@ -8,6 +8,8 @@ public class Player {
 
   private Integer playerId;
 
+  private String playerName;
+
   private PlayerStateEnum state = PlayerStateEnum.WAITING;
 
   private Integer score = 0;
