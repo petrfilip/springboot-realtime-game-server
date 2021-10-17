@@ -4,8 +4,8 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.petrfilip.server.event.TickEventPublisher;
-import java.util.Date;
+import cz.petrfilip.server.event.EventPublisher;
+import cz.petrfilip.server.event.GameEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 public class GameService {
 
   private IRule rule;
-  private final TickEventPublisher tickEventPublisher;
+  private final EventPublisher eventPublisher;
   private final ObjectMapper objectMapper;
 
   // gameStates = tick + state in given tick
@@ -30,16 +30,18 @@ public class GameService {
   private Map<Player, Object> unprocessedMoves = new HashMap<>();
 
   private final Map<Integer, Player> players = new HashMap<>();
+  private String instanceId;
 
-  public GameService(TickEventPublisher tickEventPublisher, ObjectMapper objectMapper) {
-    this.tickEventPublisher = tickEventPublisher;
+  public GameService(EventPublisher eventPublisher, ObjectMapper objectMapper) {
+    this.eventPublisher = eventPublisher;
     this.objectMapper = objectMapper;
   }
 
-  public void setGame(IRule rule) {
+  public void setGame(IRule rule, String roomId) {
     if (this.rule != null) {
       throw new IllegalStateException("Game is already set");
     }
+    instanceId = roomId;
     this.rule = rule;
   }
 
@@ -50,8 +52,11 @@ public class GameService {
     return currentState;
   }
 
-  public void removePlayer(Integer playerId) {
-    players.remove(playerId);
+  public GameState removePlayer(Integer playerId) {
+    if (players.containsKey(playerId)) {
+      players.get(playerId).setState(PlayerStateEnum.DONE);
+    }
+    return currentState;
   }
 
   public void addPlayerMove(Integer tick, Integer playerId, Object playerMove) {
@@ -86,10 +91,13 @@ public class GameService {
 
     if (gameState.getState().equals(GameStateEnum.FINISHED)) {
       scheduledFuture.cancel(false);
+      if (currentState.getParams().containsKey("onGameEndCallback")) {
+        ((Runnable) currentState.getParams().get("onGameEndCallback")).run();
+      }
     }
 
     unprocessedMoves = new HashMap<>();
-    tickEventPublisher.tickEvent(new Date().toInstant().toString());
+    eventPublisher.publish(new GameEvent(this, instanceId));
   }
 
   public GameState startGame(Map<String, Object> gameParameters) {
@@ -102,7 +110,6 @@ public class GameService {
     currentState.setParams(gameParameters);
     rule.init(currentState, players.values());
     ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-
     scheduledFuture = executor.scheduleAtFixedRate(this::calculateNextState, 0, 100, TimeUnit.MILLISECONDS);
     return currentState;
   }

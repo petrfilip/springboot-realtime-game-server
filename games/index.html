@@ -27,11 +27,12 @@
   <div id="roomList">
     <strong>Loading...</strong>
   </div>
-  <button onClick="refreshRoomList()">Refresh list of rooms</button>
+  <button onClick="refreshRoomList(); return false;">Refresh list of rooms</button>
 </div>
 
 <div>
   <h2>Game board</h2>
+  <div id="roomInfo"></div>
   <button onClick="startGame()">Start game</button>
   <button onClick="joinGame()">Join game</button>
   <canvas id="gameBoard"></canvas>
@@ -59,15 +60,13 @@
     }
 
     async function startGame() {
-        const responseJoinRoom = serverConnection.joinToRoom(serverConnection.getPlayer());
         if (this.loadedGames === undefined) {
-            loadJS("http://localhost:63342/multiplayerServer/games/snake/script.js", onLoadGameScript, document.body);
+            await loadJS("http://localhost:63342/multiplayerServer/games/snake/script.js", onLoadGameScript, document.body);
         }
         serverConnection.startGame();
     }
 
     function joinGame() {
-        serverConnection.joinToRoom(serverConnection.getPlayer())
         if (this.loadedGames === undefined) {
             loadJS("http://localhost:63342/multiplayerServer/games/snake/script.js", onLoadGameScript, document.body);
         }
@@ -99,8 +98,6 @@
     }
 
     function renderRoomList(rooms) {
-
-
         if (rooms.length) {
             for (let i = 0; i < rooms.length; i++) {
                 const ul = document.getElementById("roomList");
@@ -121,8 +118,17 @@
         }
     }
 
+    function renderRoomDetails(room) {
+        const div = document.getElementById("roomInfo");
+        div.innerHTML = "";
+        const textNode = document.createElement('div')
+        textNode.innerHTML = room.roomName + " " + room.roomId + " " + room.state + " " + room.connectedPlayers.length;
+        div.appendChild(textNode);
+    }
+
 
     const serverConnection = new ServerHelper("http://localhost:8080")
+    serverConnection.onRoomChangeCallback(renderRoomDetails)
     refreshRoomList();
 
 

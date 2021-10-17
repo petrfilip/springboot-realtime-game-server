@@ -18,6 +18,14 @@ const DIRECTIONS = {
 let direction = null;
 let foods = [];
 let snakes = [];
+const playerColors = [];
+
+const getPlayerColors = (index) => {
+    if (playerColors[index] === undefined) {
+        playerColors[index] = "#" + Math.floor(Math.random() * (16777215)).toString(16);
+    }
+    return playerColors[index];
+}
 
 function drawBackground() {
     context.fillStyle = "lightgreen";
@@ -25,9 +33,10 @@ function drawBackground() {
 }
 
 function drawSnakes() {
-    for (let snake of snakes) {
+    for (let i = 0; i < snakes.length; i++) {
+        const snake = snakes[i]
+        context.fillStyle = getPlayerColors(i);
         for (let snakeBody of snake.body) {
-            context.fillStyle = "green";
             context.fillRect(snakeBody.x * box, snakeBody.y * box, box, box);
         }
     }

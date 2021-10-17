@@ -4,16 +4,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TickEventPublisher {
+public class EventPublisher {
 
   private final ApplicationEventPublisher applicationEventPublisher;
 
-  public TickEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+  public EventPublisher(ApplicationEventPublisher applicationEventPublisher) {
     this.applicationEventPublisher = applicationEventPublisher;
   }
 
-  public void tickEvent(final String message) {
-    TickEvent tickEvent = new TickEvent(this, message);
-    applicationEventPublisher.publishEvent(tickEvent);
+  public void publish(GameServerEvent event) {
+    applicationEventPublisher.publishEvent(event);
   }
 }
